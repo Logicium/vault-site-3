@@ -11,11 +11,22 @@ import ProductsSection from '../components/sections/ProductsSection.vue'
 import GallerySection from '@apotome/archetype-shared/components/sections/GallerySection.vue'
 import HoursSection from '@apotome/archetype-shared/components/sections/HoursSection.vue'
 import TestimonialsSection from '@apotome/archetype-shared/components/sections/TestimonialsSection.vue'
+import Marquee from '@apotome/archetype-shared/components/motion/Marquee.vue'
 
-const { variant: liveVariant } = useSiteTheme()
+const { variant: liveVariant, themeName } = useSiteTheme()
 const galleryLimit = computed(() => VARIANT_PHOTO_COUNT[resolveVariant(liveVariant.value)].gallery)
 const isPortfolio = computed(() => variantAtLeast(liveVariant.value, 'portfolio'))
 const content = useSiteContentStore()
+
+/** Hero ledger and the poster ribbon under it. */
+const heroMeta = computed(() => {
+  const city = siteConfig.contact.address.split(',').slice(1, 3).map(s => s.trim()).join(', ')
+  const items: Array<{ label: string; value?: string }> = [{ label: siteConfig.tagline }]
+  if (city) items.push({ label: city })
+  items.push({ label: 'Makers', value: String(siteConfig.categories.length) + ' categories' })
+  return items
+})
+const ribbon = computed(() => [siteConfig.tagline, ...siteConfig.categories.map(c => c.name), 'Open today'])
 const reviewItems = computed(() =>
   content.reviewsSource === 'google' && content.googleReviews.length
     ? content.googleReviews
@@ -31,42 +42,48 @@ const reviewItems = computed(() =>
     :image="siteConfig.photos.hero.src"
     :image-alt="siteConfig.photos.hero.alt"
     :images="isPortfolio ? [siteConfig.photos.hero, ...siteConfig.photos.gallery.slice(0, 3)] : []"
-    :cta-primary="{ label: 'Shop now', to: '/shop' }"
-    :cta-secondary="{ label: 'Visit us', to: '/visit' }"
+    :meta="heroMeta"
+    :cta-primary="{ label: siteConfig.sections.hero.ctaPrimary, to: '/shop' }"
+    :cta-secondary="{ label: siteConfig.sections.hero.ctaSecondary, to: '/visit' }"
     :layout="isPortfolio ? 'stage' : 'split'"
   />
+  <Marquee v-if="themeName === 'vibrant'" class="ap-ribbon" :items="ribbon" separator="dot" />
   <CategoriesSection
-    eyebrow="Browse"
+    :eyebrow="siteConfig.sections.categories.eyebrow"
+    :title="siteConfig.sections.categories.title"
+    :count-label="siteConfig.sections.categories.countLabel"
     :categories="siteConfig.categories"
   />
   <ProductsSection
-    eyebrow="Just in"
-    title="A few favorites"
+    :eyebrow="siteConfig.sections.featured.eyebrow"
+    :title="siteConfig.sections.featured.title"
+    :shop-all-label="siteConfig.sections.featured.shopAllLabel"
+    :cta-label="siteConfig.sections.featured.ctaLabel"
     :products="siteConfig.featured.slice(0, isPortfolio ? 4 : 3)"
     :shop-all-url="siteConfig.shopUrl"
   />
   <AboutSection
-    eyebrow="Our shop"
+    :eyebrow="siteConfig.sections.story.eyebrow"
     :title="siteConfig.story.title"
     :paragraphs="siteConfig.story.paragraphs"
     :facts="siteConfig.story.facts"
     :image="siteConfig.photos.about.src"
     :image-alt="siteConfig.photos.about.alt"
-    reverse
   />
   <GallerySection
-    eyebrow="In the wild"
+    :eyebrow="siteConfig.sections.gallery.eyebrow"
     :photos="siteConfig.photos.gallery"
     :limit="galleryLimit"
     :layout="isPortfolio ? 'masonry' : 'grid'"
   />
   <HoursSection
-    eyebrow="Visit"
-    title="When we’re open"
+    :eyebrow="siteConfig.sections.hours.eyebrow"
+    :title="siteConfig.sections.hours.title"
     :hours="siteConfig.hours"
   />
   <TestimonialsSection
-    eyebrow="Notes from neighbors"
+    :eyebrow="siteConfig.sections.reviews.eyebrow"
+    :title="siteConfig.sections.reviews.title"
     :items="reviewItems"
   />
 </template>

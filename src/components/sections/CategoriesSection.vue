@@ -1,32 +1,39 @@
 <script setup lang="ts">
+import { categoryHref } from '@apotome/archetype-shared/platform/catalogNav'
 interface Category { name: string; image: string; imageAlt?: string; url?: string; count?: number }
 
 import OptimizedImage from '@apotome/archetype-shared/components/OptimizedImage.vue'
 
-defineProps<{
+/* A tile without an explicit url opens the shop filtered to that category,
+   the same place the header's catalog menu goes. */
+const hrefFor = (c: { name: string; url?: string }) => c.url || categoryHref(c.name)
+
+withDefaults(defineProps<{
   eyebrow?: string
   title?: string
   categories: Category[]
-}>()
+  /** Label after a category's item count, e.g. "12 items". Owner-editable. */
+  countLabel?: string
+}>(), { countLabel: 'items' })
 </script>
 
 <template>
-  <section class="ap-section ap-section--alt ap-categories">
+  <section class="ap-section ap-section--alt ap-categories" data-index>
     <div class="ap-container">
       <div class="ap-section-head">
         <span v-if="eyebrow" class="ap-eyebrow">{{ eyebrow }}</span>
-        <h2>{{ title || 'Browse the shop' }}</h2>
+        <h2 v-lines>{{ title }}</h2>
       </div>
 
       <!-- ── Style 1 · Editorial overlay tiles (default) ── -->
-      <div class="ap-categories__editorial">
-        <a v-for="c in categories" :key="c.name" :href="c.url || '#'" class="ap-categories__tile">
+      <div class="ap-categories__editorial" v-cascade="90">
+        <a v-for="c in categories" :key="c.name" :href="hrefFor(c)" class="ap-categories__tile">
           <div class="ap-categories__media">
             <OptimizedImage :src="c.image" :alt="c.imageAlt || c.name" />
           </div>
           <div class="ap-categories__label">
             <strong>{{ c.name }}</strong>
-            <small v-if="c.count">{{ c.count }} items</small>
+            <small v-if="c.count">{{ c.count }} {{ countLabel }}</small>
           </div>
         </a>
       </div>
@@ -35,7 +42,7 @@ defineProps<{
       <div class="ap-categories__lookbook">
         <a
           v-for="(c, i) in categories" :key="c.name"
-          :href="c.url || '#'"
+          :href="hrefFor(c)"
           class="ap-categories__look-tile"
           :class="[`ap-categories__look-tile--${(i % 6) + 1}`]"
         >
@@ -44,7 +51,7 @@ defineProps<{
           </div>
           <div class="ap-categories__look-overlay">
             <h3>{{ c.name }}</h3>
-            <small v-if="c.count">{{ c.count }} items →</small>
+            <small v-if="c.count">{{ c.count }} {{ countLabel }} →</small>
           </div>
         </a>
       </div>
@@ -53,7 +60,7 @@ defineProps<{
       <div class="ap-categories__stack">
         <a
           v-for="(c, i) in categories" :key="c.name"
-          :href="c.url || '#'"
+          :href="hrefFor(c)"
           class="ap-categories__stack-card"
           :class="[`ap-categories__stack-card--${(i % 3) + 1}`]"
         >
@@ -62,20 +69,20 @@ defineProps<{
           </div>
           <div class="ap-categories__stack-body">
             <h3>{{ c.name }}</h3>
-            <small v-if="c.count">{{ c.count }} items</small>
+            <small v-if="c.count">{{ c.count }} {{ countLabel }}</small>
           </div>
         </a>
       </div>
 
       <!-- ── Style 5 · Carousel — horizontal scroll rail ── -->
       <div class="ap-categories__carousel ap-scroll-x">
-        <a v-for="c in categories" :key="c.name" :href="c.url || '#'" class="ap-categories__car-card">
+        <a v-for="c in categories" :key="c.name" :href="hrefFor(c)" class="ap-categories__car-card">
           <div class="ap-categories__car-media">
             <OptimizedImage :src="c.image" :alt="c.imageAlt || c.name" />
           </div>
           <div class="ap-categories__car-body">
             <h3>{{ c.name }}</h3>
-            <small v-if="c.count">{{ c.count }} items →</small>
+            <small v-if="c.count">{{ c.count }} {{ countLabel }} →</small>
           </div>
         </a>
       </div>
@@ -83,13 +90,13 @@ defineProps<{
       <!-- ── Style 3 · Catalog list ── -->
       <ul class="ap-categories__catalog">
         <li v-for="c in categories" :key="c.name" class="ap-categories__cat-row">
-          <a :href="c.url || '#'">
+          <a :href="hrefFor(c)">
             <div class="ap-categories__cat-thumb">
               <OptimizedImage :src="c.image" :alt="c.imageAlt || c.name" />
             </div>
             <div class="ap-categories__cat-body">
               <h3>{{ c.name }}</h3>
-              <small v-if="c.count">{{ c.count }} items</small>
+              <small v-if="c.count">{{ c.count }} {{ countLabel }}</small>
             </div>
             <span class="ap-categories__cat-arrow" aria-hidden="true">→</span>
           </a>
